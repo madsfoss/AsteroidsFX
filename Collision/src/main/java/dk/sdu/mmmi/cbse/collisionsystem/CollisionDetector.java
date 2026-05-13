@@ -1,9 +1,9 @@
 package dk.sdu.mmmi.cbse.collisionsystem;
 
-import dk.sdu.mmmi.cbse.common.services.IPostEntityProcessingService;
 import dk.sdu.mmmi.cbse.common.data.Entity;
 import dk.sdu.mmmi.cbse.common.data.GameData;
 import dk.sdu.mmmi.cbse.common.data.World;
+import dk.sdu.mmmi.cbse.common.services.IPostEntityProcessingService;
 
 public class CollisionDetector implements IPostEntityProcessingService {
 
@@ -11,25 +11,38 @@ public class CollisionDetector implements IPostEntityProcessingService {
     }
 
     @Override
-    public void process(GameData gameData, World world) {
-        // two for loops for all entities in the world
-        for (Entity entity1 : world.getEntities()) {
-            for (Entity entity2 : world.getEntities()) {
+public void process(GameData gameData, World world) {
+    // Put entities in an array/list
+    Entity[] entities = world.getEntities().toArray(new Entity[0]);
 
-                // if the two entities are identical, skip the iteration
-                if (entity1.getID().equals(entity2.getID())) {
-                    continue;                    
-                }
-
-                // CollisionDetection
-                if (this.collides(entity1, entity2)) {
-                    world.removeEntity(entity1);
-                    world.removeEntity(entity2);
-                }
-            }
+    for (int i = 0; i < entities.length; i++) {
+        Entity entity1 = entities[i];
+        
+        // Skip if entity1 was already removed in a previous collision this frame
+        if (world.getEntity(entity1.getID()) == null) {
+            continue;
         }
 
+        // 2. Start 'j' at 'i + 1' to prevent double-checking entities against each other
+        // and prevent checking an entity against itself!
+        for (int j = i + 1; j < entities.length; j++) {
+            Entity entity2 = entities[j];
+
+            // Skip if entity2 was already removed
+            if (world.getEntity(entity2.getID()) == null) {
+                continue;
+            }
+
+            if (this.collides(entity1, entity2)) {
+                world.removeEntity(entity1);
+                world.removeEntity(entity2);
+                
+                // Entity 1 is dead. Break out of the inner loop so it stops 
+                break; 
+            }
+        }
     }
+}
 
     public Boolean collides(Entity entity1, Entity entity2) {
         float dx = (float) entity1.getX() - (float) entity2.getX();
