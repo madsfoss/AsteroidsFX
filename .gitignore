@@ -27,4 +27,11 @@ replay_pid*
 
 /.idea/
 
+# macOS
 .DS_Store
+
+# VS Code
+.vscode/
+
+# Environment variables
+.env
