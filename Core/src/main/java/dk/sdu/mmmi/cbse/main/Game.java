@@ -4,6 +4,10 @@
  */
 package dk.sdu.mmmi.cbse.main;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import dk.sdu.mmmi.cbse.common.data.Entity;
 import dk.sdu.mmmi.cbse.common.data.GameData;
 import dk.sdu.mmmi.cbse.common.data.GameKeys;
@@ -11,18 +15,13 @@ import dk.sdu.mmmi.cbse.common.data.World;
 import dk.sdu.mmmi.cbse.common.services.IEntityProcessingService;
 import dk.sdu.mmmi.cbse.common.services.IGamePluginService;
 import dk.sdu.mmmi.cbse.common.services.IPostEntityProcessingService;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import javafx.animation.AnimationTimer;
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
  *
@@ -101,6 +100,7 @@ class Game {
                 update();
                 draw();
                 gameData.getKeys().update();
+                
             }
 
         }.start();
@@ -113,16 +113,18 @@ class Game {
         for (IPostEntityProcessingService postEntityProcessorService : getPostEntityProcessingServices()) {
             postEntityProcessorService.process(gameData, world);
         }
+
     }
 
     private void draw() {
-        for (Entity polygonEntity : polygons.keySet()) {
-            if (!world.getEntities().contains(polygonEntity)) {
-                Polygon removedPolygon = polygons.get(polygonEntity);
-                polygons.remove(polygonEntity);
-                gameWindow.getChildren().remove(removedPolygon);
+        // Remove polygons for entities that no longer exist in the world
+        polygons.entrySet().removeIf(entry -> {
+            if (world.getEntity(entry.getKey().getID()) == null) {
+                gameWindow.getChildren().remove(entry.getValue());
+                return true;
             }
-        }
+            return false;
+        });
 
         for (Entity entity : world.getEntities()) {
             Polygon polygon = polygons.get(entity);

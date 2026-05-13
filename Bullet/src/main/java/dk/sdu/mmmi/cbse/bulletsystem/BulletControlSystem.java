@@ -9,14 +9,20 @@ import dk.sdu.mmmi.cbse.common.services.IEntityProcessingService;
 
 public class BulletControlSystem implements IEntityProcessingService, BulletSPI {
 
+    private float bulletSpeed = 3;
+
     @Override
     public void process(GameData gameData, World world) {
 
         for (Entity bullet : world.getEntities(Bullet.class)) {
             double changeX = Math.cos(Math.toRadians(bullet.getRotation()));
             double changeY = Math.sin(Math.toRadians(bullet.getRotation()));
-            bullet.setX(bullet.getX() + changeX * 3);
-            bullet.setY(bullet.getY() + changeY * 3);
+            bullet.setX(bullet.getX() + changeX * bulletSpeed);
+            bullet.setY(bullet.getY() + changeY * bulletSpeed);
+
+            if (isOutOfBounds(bullet, gameData)) {
+                world.removeEntity(bullet);
+            }
         }
     }
 
@@ -32,4 +38,9 @@ public class BulletControlSystem implements IEntityProcessingService, BulletSPI 
         bullet.setRadius(1);
         return bullet;
     }
+
+    private boolean isOutOfBounds(Entity entity, GameData gameData) {
+        return entity.getX() < 0 || entity.getX() > gameData.getDisplayWidth() || entity.getY() < 0 || entity.getY() > gameData.getDisplayHeight();
+    }
+
 }
