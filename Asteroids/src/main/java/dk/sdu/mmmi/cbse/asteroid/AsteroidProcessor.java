@@ -1,5 +1,7 @@
 package dk.sdu.mmmi.cbse.asteroid;
 
+import java.util.Random;
+
 import dk.sdu.mmmi.cbse.common.asteroids.Asteroid;
 import dk.sdu.mmmi.cbse.common.asteroids.IAsteroidSplitter;
 import dk.sdu.mmmi.cbse.common.data.Entity;
@@ -14,7 +16,18 @@ public class AsteroidProcessor implements IEntityProcessingService {
     @Override
     public void process(GameData gameData, World world) {
 
+        // Continuously spawn new asteroids if there are fewer than 4 in the world
+        if (Math.random() < 0.005 && world.getEntities(Asteroid.class).size() < 4) {
+            world.addEntity(AsteroidPlugin.createAsteroid(gameData));
+        }
+
         for (Entity asteroid : world.getEntities(Asteroid.class)) {
+            Asteroid ast = (Asteroid) asteroid;
+            if (ast.isHit()) {
+                asteroidSplitter.createSplitAsteroid(asteroid, world);
+                continue; // Skip moving the original as it is now removed/split
+            }
+
             double changeX = Math.cos(Math.toRadians(asteroid.getRotation()));
             double changeY = Math.sin(Math.toRadians(asteroid.getRotation()));
 
@@ -42,9 +55,7 @@ public class AsteroidProcessor implements IEntityProcessingService {
 
     }
 
-    /**
-     * Dependency Injection using OSGi Declarative Services
-     */
+
     public void setAsteroidSplitter(IAsteroidSplitter asteroidSplitter) {
         this.asteroidSplitter = asteroidSplitter;
     }

@@ -26,6 +26,7 @@ public class PlayerPlugin implements IGamePluginService {
         playerShip.setX(gameData.getDisplayWidth()/2);
         playerShip.setY(gameData.getDisplayHeight()/2);
         playerShip.setRadius(8);
+        playerShip.setHealth(3);
         return playerShip;
     }
 

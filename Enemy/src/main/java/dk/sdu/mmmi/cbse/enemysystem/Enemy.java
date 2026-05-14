@@ -13,6 +13,7 @@ public class Enemy extends Entity {
         enemy.setRadius(8);
         enemy.setRotation(Math.random() * 360);
         enemy.setColor(1.0, 0.0, 0.0); // Set color to Red (R=1, G=0, B=0)
+        enemy.setHealth(2);
         return enemy;
     }
 }

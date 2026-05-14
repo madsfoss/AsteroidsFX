@@ -32,7 +32,6 @@ public enum ServiceLocator {
                     .collect(Collectors.toList());
 
             // Create configuration that will resolve plugin modules
-            // (verify that the graph of modules is correct)
             Configuration pluginsConfiguration = ModuleLayer
                     .boot()
                     .configuration()

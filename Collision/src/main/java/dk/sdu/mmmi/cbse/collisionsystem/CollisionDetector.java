@@ -34,11 +34,20 @@ public void process(GameData gameData, World world) {
             }
 
             if (this.collides(entity1, entity2)) {
-                world.removeEntity(entity1);
-                world.removeEntity(entity2);
+                entity1.setHealth(entity1.getHealth() - 1);
+                entity2.setHealth(entity2.getHealth() - 1);
                 
-                // Entity 1 is dead. Break out of the inner loop so it stops 
-                break; 
+                if (entity1.getHealth() <= 0) {
+                    world.removeEntity(entity1);
+                }
+                if (entity2.getHealth() <= 0) {
+                    world.removeEntity(entity2);
+                }
+                
+                // If Entity 1 is dead, break out of the inner loop so it stops 
+                if (entity1.getHealth() <= 0) {
+                    break; 
+                }
             }
         }
     }
