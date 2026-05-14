@@ -1,7 +1,5 @@
 package dk.sdu.mmmi.cbse.asteroid;
 
-import java.util.Random;
-
 import dk.sdu.mmmi.cbse.common.asteroids.Asteroid;
 import dk.sdu.mmmi.cbse.common.asteroids.IAsteroidSplitter;
 import dk.sdu.mmmi.cbse.common.data.Entity;
@@ -24,6 +22,9 @@ public class AsteroidProcessor implements IEntityProcessingService {
         for (Entity asteroid : world.getEntities(Asteroid.class)) {
             Asteroid ast = (Asteroid) asteroid;
             if (ast.isHit()) {
+                if (ast.getMaxHealth() <= 1) {
+                    gameData.setScore(gameData.getScore() + 1);
+                }
                 asteroidSplitter.createSplitAsteroid(asteroid, world);
                 continue; // Skip moving the original as it is now removed/split
             }

@@ -4,6 +4,7 @@
  */
 package dk.sdu.mmmi.cbse.main;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,17 +17,17 @@ import dk.sdu.mmmi.cbse.common.services.IEntityProcessingService;
 import dk.sdu.mmmi.cbse.common.services.IGamePluginService;
 import dk.sdu.mmmi.cbse.common.services.IPostEntityProcessingService;
 import javafx.animation.AnimationTimer;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-/**
- *
- * @author jcs
- */
 class Game {
 
     private final GameData gameData = new GameData();
@@ -36,6 +37,13 @@ class Game {
     private final List<IGamePluginService> gamePluginServices;
     private final List<IEntityProcessingService> entityProcessingServiceList;
     private final List<IPostEntityProcessingService> postEntityProcessingServices;
+    private Image fullHeartImage;
+    private Image halfHeartImage;
+    private Image emptyHeartImage;
+    private final List<ImageView> heartImageViews = new ArrayList<>();
+    private boolean isGameOver = false;
+    private VBox gameOverPane;
+    private Text scoreText;
 
     Game(List<IGamePluginService> gamePluginServices, List<IEntityProcessingService> entityProcessingServiceList, List<IPostEntityProcessingService> postEntityProcessingServices) {
         this.gamePluginServices = gamePluginServices;
@@ -44,11 +52,52 @@ class Game {
     }
 
     public void start(Stage window) throws Exception {
-        Text text = new Text(10, 20, "Destroyed asteroids: 0");
+        Pane rootNode = new Pane();
+        Pane uiBar = new Pane();
+        uiBar.setPrefSize(gameData.getDisplayWidth(), 40);
+        uiBar.setStyle("-fx-background-color: #d3d3d3; -fx-border-color: black; -fx-border-width: 0 0 2 0;"); // Light grey bar with bottom border
+        
+        scoreText = new Text(10, 25, "Destroyed asteroids: 0");
         gameWindow.setPrefSize(gameData.getDisplayWidth(), gameData.getDisplayHeight());
-        gameWindow.getChildren().add(text);
+        uiBar.getChildren().add(scoreText);
 
-        Scene scene = new Scene(gameWindow);
+        try {
+            fullHeartImage = new Image(getClass().getResourceAsStream("/health_display/full_heart.png"));
+            halfHeartImage = new Image(getClass().getResourceAsStream("/health_display/half_heart.png"));
+            emptyHeartImage = new Image(getClass().getResourceAsStream("/health_display/empty_heart.png"));
+
+            int maxHearts = 3;
+            for (int i = 0; i < maxHearts; i++) {
+                ImageView heartView = new ImageView(emptyHeartImage);
+                heartView.setFitWidth(32);
+                heartView.setFitHeight(32);
+                // Position from left to right, aligned to the right edge
+                heartView.setX(gameData.getDisplayWidth() - 10 - (maxHearts * 36) + (i * 36));
+                heartView.setY(4);
+                heartImageViews.add(heartView);
+                uiBar.getChildren().add(heartView);
+            }
+        } catch (Exception e) {
+            System.err.println("Heart images not found. add them to Core/src/main/resources/health_display/");
+        }
+
+        gameOverPane = new VBox(20);
+        gameOverPane.setAlignment(Pos.CENTER);
+        gameOverPane.setPrefSize(gameData.getDisplayWidth(), gameData.getDisplayHeight() + 40); // Cover entire game area and UI bar
+        gameOverPane.setStyle("-fx-background-color: rgba(0, 0, 0, 0.5);"); // Semi-transparent black background
+        
+        Text gameOverText = new Text("GAME OVER");
+        gameOverText.setStyle("-fx-fill: white; -fx-font-size: 40px; -fx-font-weight: bold;");
+        
+        Text restartText = new Text("Press SPACE to Restart");
+        restartText.setStyle("-fx-fill: white; -fx-font-size: 20px;");
+        
+        gameOverPane.getChildren().addAll(gameOverText, restartText);
+        gameOverPane.setVisible(false);
+
+        gameWindow.setLayoutY(40);
+        rootNode.getChildren().addAll(gameWindow, uiBar, gameOverPane);
+        Scene scene = new Scene(rootNode);
         scene.setOnKeyPressed(event -> {
             if (event.getCode().equals(KeyCode.LEFT)) {
                 gameData.getKeys().setKey(GameKeys.LEFT, true);
@@ -61,6 +110,9 @@ class Game {
             }
             if (event.getCode().equals(KeyCode.SPACE)) {
                 gameData.getKeys().setKey(GameKeys.SPACE, true);
+                if (isGameOver) {
+                    restartGame();
+                }
             }
         });
         scene.setOnKeyReleased(event -> {
@@ -99,7 +151,9 @@ class Game {
         new AnimationTimer() {
             @Override
             public void handle(long now) {
-                update();
+                if (!isGameOver) {
+                    update();
+                }
                 draw();
                 gameData.getKeys().update();
                 
@@ -142,6 +196,60 @@ class Game {
             polygon.setFill(javafx.scene.paint.Color.color(color[0], color[1], color[2]));
         }
 
+        // Update health display
+        if (!heartImageViews.isEmpty()) {
+            int playerHealth = 0;
+            boolean playerExists = false;
+            for (Entity entity : world.getEntities()) {
+                if (entity.getClass().getSimpleName().equals("Player")) {
+                    playerHealth = entity.getHealth();
+                    playerExists = true;
+                    break;
+                }
+            }
+
+            if (!playerExists && !isGameOver) {
+                isGameOver = true;
+                gameOverPane.setVisible(true);
+            }
+
+            for (int i = 0; i < heartImageViews.size(); i++) {
+                ImageView heartView = heartImageViews.get(i);
+                int fullThreshold = (heartImageViews.size() - i) * 2;
+                int halfThreshold = fullThreshold - 1;
+
+                if (playerHealth >= fullThreshold) {
+                    heartView.setImage(fullHeartImage);
+                } else if (playerHealth >= halfThreshold) {
+                    heartView.setImage(halfHeartImage);
+                } else {
+                    heartView.setImage(emptyHeartImage);
+                }
+            }
+        }
+
+        scoreText.setText("Destroyed asteroids: " + gameData.getScore());
+
+    }
+
+    private void restartGame() {
+        // Safely remove all entities from the world
+        for (Entity entity : new ArrayList<>(world.getEntities())) {
+            world.removeEntity(entity);
+        }
+        // Clear all JavaFX visual polygons
+        gameWindow.getChildren().removeAll(polygons.values());
+        polygons.clear();
+        
+        // Restart all plugins
+        for (IGamePluginService iGamePlugin : getGamePluginServices()) {
+            iGamePlugin.start(gameData, world);
+        }
+        
+        gameData.setScore(0);
+        
+        isGameOver = false;
+        gameOverPane.setVisible(false);
     }
 
     public List<IGamePluginService> getGamePluginServices() {
