@@ -12,6 +12,7 @@ public class Entity implements Serializable {
     private double y;
     private double rotation;
     private float radius;
+    private double[] color = new double[]{0.0, 0.0, 0.0}; // Default to black (R, G, B)
             
 
     public String getID() {
@@ -59,5 +60,13 @@ public class Entity implements Serializable {
         
     public float getRadius() {
         return this.radius;
+    }
+    
+    public void setColor(double r, double g, double b) {
+        this.color = new double[]{r, g, b};
+    }
+
+    public double[] getColor() {
+        return this.color;
     }
 }

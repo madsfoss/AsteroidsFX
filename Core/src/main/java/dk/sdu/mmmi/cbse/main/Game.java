@@ -85,6 +85,8 @@ class Game {
         }
         for (Entity entity : world.getEntities()) {
             Polygon polygon = new Polygon(entity.getPolygonCoordinates());
+            double[] color = entity.getColor();
+            polygon.setFill(javafx.scene.paint.Color.color(color[0], color[1], color[2]));
             polygons.put(entity, polygon);
             gameWindow.getChildren().add(polygon);
         }
@@ -136,6 +138,8 @@ class Game {
             polygon.setTranslateX(entity.getX());
             polygon.setTranslateY(entity.getY());
             polygon.setRotate(entity.getRotation());
+            double[] color = entity.getColor();
+            polygon.setFill(javafx.scene.paint.Color.color(color[0], color[1], color[2]));
         }
 
     }
