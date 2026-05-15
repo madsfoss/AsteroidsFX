@@ -28,14 +28,18 @@ public class AsteroidSplitterImpl implements IAsteroidSplitter {
             smallerAsteroid.setRadius(newRadius);
             smallerAsteroid.setHealth(newHealth);
             
-            // Deflect the new asteroids by 45 degrees in opposite directions
-            double newRot = e.getRotation() + (i == 0 ? 45 : -45);
+            // Deflect the new asteroids by a random angle between 20 and 60 degrees in opposite directions
+            double newRot = e.getRotation() + (i == 0 ? getRandomInRange(20, 60) : getRandomInRange(-60, -20));
             smallerAsteroid.setRotation(newRot);
-            // Offset the spawn position so they don't emerge inside each other
+            // Offset the spawn position so they dont spawn inside each other
             smallerAsteroid.setX(e.getX() + Math.cos(Math.toRadians(newRot)) * newRadius * 2);
             smallerAsteroid.setY(e.getY() + Math.sin(Math.toRadians(newRot)) * newRadius * 2);
             world.addEntity(smallerAsteroid);
         }
+    }
+
+    private int getRandomInRange(int min, int max) {
+        return (int) (Math.random() * (max - min + 1)) + min;
     }
 
 }
