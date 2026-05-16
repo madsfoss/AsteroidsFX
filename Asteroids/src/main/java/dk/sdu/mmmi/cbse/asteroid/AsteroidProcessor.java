@@ -15,7 +15,7 @@ public class AsteroidProcessor implements IEntityProcessingService {
     public void process(GameData gameData, World world) {
 
         // Continuously spawn new asteroids if there are fewer than 4 in the world
-        if (Math.random() < 0.005 && world.getEntities(Asteroid.class).size() < 4) {
+        if (Math.random() < 0.005 && world.getEntities(Asteroid.class).size() < 5) {
             world.addEntity(AsteroidPlugin.createAsteroid(gameData));
         }
 

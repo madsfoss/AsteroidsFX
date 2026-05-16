@@ -16,6 +16,7 @@
     <module>Asteroids</module>
     <module>Collision</module>
     <module>Enemy</module>
+    <module>Upgrades</module>
   </modules>
   <properties>
     <java>java</java>

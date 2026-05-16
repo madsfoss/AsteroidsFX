@@ -6,6 +6,7 @@ public class GameData {
     private int displayHeight = 800;
     private final GameKeys keys = new GameKeys();
     private int score = 0;
+    private int highScore = 0;
 
 
     public GameKeys getKeys() {
@@ -34,5 +35,13 @@ public class GameData {
 
     public void setScore(int score) {
         this.score = score;
+    }
+
+    public int getHighScore() {
+        return highScore;
+    }
+
+    public void setHighScore(int highScore) {
+        this.highScore = highScore;
     }
 }

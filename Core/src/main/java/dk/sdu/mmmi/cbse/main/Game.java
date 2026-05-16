@@ -44,6 +44,8 @@ class Game {
     private boolean isGameOver = false;
     private VBox gameOverPane;
     private Text scoreText;
+    private Text finalScoreText;
+    private Text highScoreText;
 
     Game(List<IGamePluginService> gamePluginServices, List<IEntityProcessingService> entityProcessingServiceList, List<IPostEntityProcessingService> postEntityProcessingServices) {
         this.gamePluginServices = gamePluginServices;
@@ -92,7 +94,13 @@ class Game {
         Text restartText = new Text("Press SPACE to Restart");
         restartText.setStyle("-fx-fill: white; -fx-font-size: 20px;");
         
-        gameOverPane.getChildren().addAll(gameOverText, restartText);
+        finalScoreText = new Text("Score: 0");
+        finalScoreText.setStyle("-fx-fill: white; -fx-font-size: 24px;");
+        
+        highScoreText = new Text("High Score: 0");
+        highScoreText.setStyle("-fx-fill: white; -fx-font-size: 24px;");
+        
+        gameOverPane.getChildren().addAll(gameOverText, finalScoreText, highScoreText, restartText);
         gameOverPane.setVisible(false);
 
         gameWindow.setLayoutY(40);
@@ -210,6 +218,13 @@ class Game {
 
             if (!playerExists && !isGameOver) {
                 isGameOver = true;
+                
+                if (gameData.getScore() > gameData.getHighScore()) {
+                    gameData.setHighScore(gameData.getScore());
+                }
+                finalScoreText.setText("Score: " + gameData.getScore());
+                highScoreText.setText("High Score: " + gameData.getHighScore());
+                
                 gameOverPane.setVisible(true);
             }
 

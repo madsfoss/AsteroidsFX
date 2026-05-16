@@ -34,7 +34,7 @@ public class PlayerControlSystem implements IEntityProcessingService {
             }
             if (gameData.getKeys().isDown(GameKeys.SPACE)) {
                 long currentTime = System.currentTimeMillis();
-                if (currentTime - lastFireTime > 100) { // ms cooldown between shots
+                if (currentTime - lastFireTime > 200) { // ms cooldown between shots
                     getBulletSPIs().stream().findFirst().ifPresent(
                             spi -> {world.addEntity(spi.createBullet(player, gameData));}
                     );
