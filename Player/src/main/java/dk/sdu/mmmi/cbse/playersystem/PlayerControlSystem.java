@@ -34,9 +34,34 @@ public class PlayerControlSystem implements IEntityProcessingService {
             }
             if (gameData.getKeys().isDown(GameKeys.SPACE)) {
                 long currentTime = System.currentTimeMillis();
-                if (currentTime - lastFireTime > 200) { // ms cooldown between shots
+                int speedStacks = player.getEffectCount("FASTER_SHOOTING");
+                long fireCooldown = 200 / (speedStacks + 1);
+                
+                if (currentTime - lastFireTime > fireCooldown) { // ms cooldown between shots
                     getBulletSPIs().stream().findFirst().ifPresent(
-                            spi -> {world.addEntity(spi.createBullet(player, gameData));}
+                            spi -> {
+                                int bulletStacks = player.getEffectCount("MORE_BULLETS");
+                                int sizeStacks = player.getEffectCount("LARGER_BULLETS");
+                                int bulletCount = 1 + (bulletStacks * 2);
+                                double originalRotation = player.getRotation();
+                                
+                                for (int i = 0; i < bulletCount; i++) {
+                                    double offset = (i - bulletCount / 2) * 15;
+                                    player.setRotation(originalRotation + offset);
+                                    
+                                    Entity bullet = spi.createBullet(player, gameData);
+                                    
+                                    if (sizeStacks > 0) {
+                                        bullet.setRadius(bullet.getRadius() * (1 + sizeStacks));
+                                        double[] newCoords = bullet.getPolygonCoordinates().clone();
+                                        for (int j = 0; j < newCoords.length; j++) newCoords[j] *= (1 + sizeStacks);
+                                        bullet.setPolygonCoordinates(newCoords);
+                                    }
+                                    bullet.setOwnerID(player.getID());
+                                    world.addEntity(bullet);
+                                }
+                                player.setRotation(originalRotation);
+                            }
                     );
                     lastFireTime = currentTime;
                 }

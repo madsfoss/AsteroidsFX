@@ -24,6 +24,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -46,6 +47,7 @@ class Game {
     private Text scoreText;
     private Text finalScoreText;
     private Text highScoreText;
+    private final Map<String, ImagePattern> imagePatternCache = new ConcurrentHashMap<>();
 
     Game(List<IGamePluginService> gamePluginServices, List<IEntityProcessingService> entityProcessingServiceList, List<IPostEntityProcessingService> postEntityProcessingServices) {
         this.gamePluginServices = gamePluginServices;
@@ -145,8 +147,22 @@ class Game {
         }
         for (Entity entity : world.getEntities()) {
             Polygon polygon = new Polygon(entity.getPolygonCoordinates());
-            double[] color = entity.getColor();
-            polygon.setFill(javafx.scene.paint.Color.color(color[0], color[1], color[2]));
+            if (entity.getImagePath() != null) {
+                ImagePattern pattern = imagePatternCache.computeIfAbsent(entity.getImagePath(), path -> {
+                    java.io.InputStream is = entity.getClass().getResourceAsStream(path);
+                    if (is != null) return new ImagePattern(new Image(is));
+                    return null;
+                });
+                if (pattern != null) {
+                    polygon.setFill(pattern);
+                } else {
+                    double[] color = entity.getColor();
+                    polygon.setFill(javafx.scene.paint.Color.color(color[0], color[1], color[2]));
+                }
+            } else {
+                double[] color = entity.getColor();
+                polygon.setFill(javafx.scene.paint.Color.color(color[0], color[1], color[2]));
+            }
             polygons.put(entity, polygon);
             gameWindow.getChildren().add(polygon);
         }
@@ -200,8 +216,23 @@ class Game {
             polygon.setTranslateX(entity.getX());
             polygon.setTranslateY(entity.getY());
             polygon.setRotate(entity.getRotation());
-            double[] color = entity.getColor();
-            polygon.setFill(javafx.scene.paint.Color.color(color[0], color[1], color[2]));
+            
+            if (entity.getImagePath() != null) {
+                ImagePattern pattern = imagePatternCache.computeIfAbsent(entity.getImagePath(), path -> {
+                    java.io.InputStream is = entity.getClass().getResourceAsStream(path);
+                    if (is != null) return new ImagePattern(new Image(is));
+                    return null;
+                });
+                if (pattern != null) {
+                    polygon.setFill(pattern);
+                } else {
+                    double[] color = entity.getColor();
+                    polygon.setFill(javafx.scene.paint.Color.color(color[0], color[1], color[2]));
+                }
+            } else {
+                double[] color = entity.getColor();
+                polygon.setFill(javafx.scene.paint.Color.color(color[0], color[1], color[2]));
+            }
         }
 
         // Update health display

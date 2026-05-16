@@ -36,9 +36,33 @@ public class EnemyControlSystem implements IEntityProcessingService {
             enemy.setY(enemy.getY() + changeY * 1);
 
             // Randomly fire a bullet
-            if (Math.random() < 0.02) {
+            int speedStacks = enemy.getEffectCount("FASTER_SHOOTING");
+            double fireChance = 0.02 + (speedStacks * 0.03);
+            if (Math.random() < fireChance) {
                 getBulletSPIs().stream().findFirst().ifPresent(
-                        spi -> { world.addEntity(spi.createBullet(enemy, gameData)); }
+                        spi -> { 
+                            int bulletStacks = enemy.getEffectCount("MORE_BULLETS");
+                            int sizeStacks = enemy.getEffectCount("LARGER_BULLETS");
+                            int bulletCount = 1 + (bulletStacks * 2);
+                            double originalRotation = enemy.getRotation();
+                            
+                            for (int i = 0; i < bulletCount; i++) {
+                                double offset = (i - bulletCount / 2) * 15;
+                                enemy.setRotation(originalRotation + offset);
+                                
+                                Entity bullet = spi.createBullet(enemy, gameData);
+                                
+                                if (sizeStacks > 0) {
+                                    bullet.setRadius(bullet.getRadius() * (1 + sizeStacks));
+                                    double[] newCoords = bullet.getPolygonCoordinates().clone();
+                                    for (int j = 0; j < newCoords.length; j++) newCoords[j] *= (1 + sizeStacks);
+                                    bullet.setPolygonCoordinates(newCoords);
+                                }
+                                bullet.setOwnerID(enemy.getID());
+                                world.addEntity(bullet);
+                            }
+                            enemy.setRotation(originalRotation);
+                        }
                 );
             }
             
